@@ -43,14 +43,58 @@ window.onload = async function() {
         raycaster.setFromCamera(vp_coords_near, camera);
         let intersects = raycaster.intersectObject(invisible_plane);
         console.log('Ray to Invisible Plane', intersects[0].point);
-        intersects = raycaster.intersectObject(mrbones);
-        console.log(intersects);
+        
+        if (mrbones) {
+            intersects = raycaster.intersectObject(mrbones, true);
+            console.log(intersects);
 
-        if (intersects.length !== 0) {
-            controls.enabled = false;
-            console.log('Ray to Mr. Bones', intersects[0].point);
-            console.log(intersects[0].object.userData);
-            window.open();
+            if (intersects.length !== 0) {
+                controls.enabled = false;
+                const hitPoint = intersects[0].point;
+                console.log('Click position - X:', hitPoint.x.toFixed(2), 'Y:', hitPoint.y.toFixed(2), 'Z:', hitPoint.z.toFixed(2));
+                
+                // More precise region detection
+                // Stomach region: middle abdomen area (more restrictive)
+                // Y: between 0 and 5 (middle section, not too high or low)
+                // X: between -2.5 and 2.5 (centered, not on sides)
+                // Z: front of body (positive Z, closer to camera)
+                const isStomachRegion = hitPoint.y >= 0 && hitPoint.y <= 5 && 
+                                       Math.abs(hitPoint.x) < 2.5 && 
+                                       hitPoint.z > -2;
+                
+                // Heart region: upper chest area
+                // Y: above 5, below 12
+                // X: centered
+                const isHeartRegion = hitPoint.y > 5 && hitPoint.y < 12 && 
+                                    Math.abs(hitPoint.x) < 2.5 && 
+                                    hitPoint.z > -2;
+                
+                // Brain region: head area
+                // Y: above 12
+                const isBrainRegion = hitPoint.y >= 12 && Math.abs(hitPoint.x) < 3;
+                
+                if (isStomachRegion) {
+                    console.log('✓ Stomach area detected! Navigating to stomach page...');
+                    window.location.href = 'stomach/index.html';
+                    return;
+                }
+                
+                if (isHeartRegion) {
+                    console.log('✓ Heart area detected! Navigating to heart page...');
+                    window.location.href = 'heart/index.html';
+                    return;
+                }
+                
+                if (isBrainRegion) {
+                    console.log('✓ Brain area detected!');
+                    // Navigate to brain page when it's created
+                    // window.location.href = 'brain/index.html';
+                    return;
+                }
+                
+                // If none of the regions match, just log it
+                console.log('Click detected but not in a specific organ region');
+            }
         }
   
         // update torus position
@@ -60,7 +104,9 @@ window.onload = async function() {
             // store a reference to the last placed torus in the global variable .
             torus = makeTorus()
             scene.add(torus);
-            torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            if (intersects.length > 0) {
+                torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+            }
         }
     };
 

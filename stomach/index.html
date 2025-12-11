@@ -1,0 +1,117 @@
+<html>
+  <head>
+    <style>
+      html, body {
+        background-color: #2a1a0a;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;
+      }
+      .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        z-index: 1000;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+      .back-button:hover {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+      .info-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(20, 10, 5, 0.85));
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 320px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        z-index: 1000;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+      }
+      .info-panel h3 {
+        margin-top: 0;
+        color: #ffcccc;
+        font-size: 18px;
+        border-bottom: 2px solid rgba(255, 204, 204, 0.3);
+        padding-bottom: 10px;
+      }
+      .info-panel p {
+        margin: 10px 0;
+      }
+      .info-panel strong {
+        color: #ffaa44;
+      }
+      .tooltip {
+        position: absolute;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 10, 5, 0.95));
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        z-index: 2000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        max-width: 300px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+      }
+      .tooltip.visible {
+        opacity: 1;
+      }
+      .tooltip h4 {
+        margin: 0 0 8px 0;
+        color: #ffcccc;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .tooltip p {
+        margin: 4px 0;
+        color: #e0e0e0;
+      }
+    </style>
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/",
+        "tweakpane": "../static/modules/tweakpane-4.0.5.min.js"
+      }
+    }
+    </script>
+    <script type="module" src="./script.js"></script>
+  </head>
+  <body>
+    <button class="back-button" onclick="window.location.href='../index.html'">← Back to Homepage</button>
+    <div class="info-panel">
+      <h3 style="margin-top: 0;">Stomach Interior</h3>
+      <p>This is a 3D visualization of the stomach's interior. The stomach is a muscular organ that breaks down food through mechanical and chemical digestion.</p>
+      <p><strong>Controls:</strong> Click and drag to rotate, scroll to zoom</p>
+      <p><strong>Hover</strong> over objects to learn more about them!</p>
+    </div>
+    <div id="tooltip" class="tooltip"></div>
+  </body>
+</html>
+
