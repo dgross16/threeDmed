@@ -1,157 +1,107 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Pane } from "tweakpane";
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-var controls, renderer, scene, camera;
+// Scene
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-window.onload = async function() {
-    scene = new THREE.Scene();
+// Camera – very far back, huge view range
+const camera = new THREE.PerspectiveCamera(
+  60,
+  window.innerWidth / window.innerHeight,
+  0.01,
+  10000           // far plane huge
+);
+camera.position.set(0, 0, 100);   // start far away
+camera.lookAt(0, 0, 0);
 
-    // setup the camera
-    const fov = 75;
-    const ratio = window.innerWidth / window.innerHeight;
-    const zNear = 1;
-    const zFar = 100;
-    camera = new THREE.PerspectiveCamera( fov, ratio, zNear, zFar );
-    camera.position.set(0, 0, 25);
-  
-    // create renderer and setup the canvas
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
-  
-    renderer.domElement.onmousedown = function( e ){
-        //console.log(scene);
-        //console.log('Yay! We clicked!');
-  
-        const pixel_coords = new THREE.Vector2( e.clientX, e.clientY );
-  
-        //console.log('Pixel coords', pixel_coords);
-  
-        const vp_coords = new THREE.Vector2( 
-                    ( pixel_coords.x / window.innerWidth ) * 2 - 1,  //X
-                    -( pixel_coords.y / window.innerHeight ) * 2 + 1) // Y
-  
-        //console.log('Viewport coords', vp_coords);
-  
-        const vp_coords_near = new THREE.Vector3( vp_coords.x, vp_coords.y, 0);
-  
-  
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(vp_coords_near, camera);
-        let intersects = raycaster.intersectObject(invisible_plane);
-        console.log('Ray to Invisible Plane', intersects[0].point);
-        intersects = raycaster.intersectObject(mrbones);
-        console.log(intersects);
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-        if (intersects.length !== 0) {
-            controls.enabled = false;
-            console.log('Ray to Mr. Bones', intersects[0].point);
-            console.log(intersects[0].object.userData);
-            window.open();
-        }
-  
-        // update torus position
+// Controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
 
-        if (e.shiftKey){
-            controls.enabled = false
-            // store a reference to the last placed torus in the global variable .
-            torus = makeTorus()
-            scene.add(torus);
-            torus.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-        }
-    };
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+const dir1 = new THREE.DirectionalLight(0xffffff, 1.5);
+dir1.position.set(50, 50, 50);
+scene.add(dir1);
 
-    renderer.domElement.onmousemove = (e) => {
-        if (e.shiftKey && torus){
-            const DELTA = e.movementY * 0.1;
-            torus.scale.set(torus.scale.x + DELTA,
-                            torus.scale.y + DELTA,
-                            torus.scale.z + DELTA);
-            if (torus.scale.x < 0) {
-                console.log('true');
-                torus.material.color.set(COLOR_1);
-            } else {
-                console.log('false');
-                torus.material.color.set(COLOR_2);
-            }
-        }
-    };
+// Axes
+const axes = new THREE.AxesHelper(10);
+scene.add(axes);
 
-    renderer.domElement.onmouseup = function() {
-        controls.enabled = true;
+console.log('Loading brain...');
+
+const loader = new GLTFLoader();
+loader.load(
+  '../models/fullbrain.glb',
+  (gltf) => {
+    console.log('Brain model loaded!', gltf);
+
+    const brain = gltf.scene;
+    scene.add(brain);
+
+    brain.traverse((child) => {
+    if (child.isMesh) {
+      console.log('Mesh part:', child.name);
     }
+});
 
-
-  
-    // setup lights
-    const ambientLight = new THREE.AmbientLight();
-    scene.add(ambientLight);
-  
-    const light = new THREE.DirectionalLight( 0xffffff, 5.0 );
-    light.position.set( 10, 100, 10 );
-    scene.add( light );
-
-    // invisible plane
-    const geometry = new THREE.PlaneGeometry( 10000, 10000 );
-    const material = new THREE.MeshBasicMaterial( {
-        visible: false
+    // Force all meshes visible and bright
+    let meshCount = 0;
+    brain.traverse((child) => {
+      if (child.isMesh) {
+        meshCount++;
+        child.visible = true;
+        child.material = new THREE.MeshNormalMaterial({ wireframe: false });
+        console.log('Mesh:', child.name);
+      }
     });
+    console.log('Total meshes:', meshCount);
 
-    const invisible_plane = new THREE.Mesh( geometry, material );
+    // Compute bounding box *without* changing position/scale
+    const box = new THREE.Box3().setFromObject(brain);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    console.log('BBox size:', size);
+    console.log('BBox center:', center);
 
-    scene.add(invisible_plane);
+    // Visualize bounding box
+    // const helper = new THREE.Box3Helper(box, 0xffff00);
+    // scene.add(helper);
 
-    // LOAD THE ARMADILLO
-    /*
-    var loader = new PLYLoader();
-    loader.load('armadillo/armadillo.ply', function(geometry) {
-
-      geometry.computeVertexNormals();
-
-      var material = new THREE.MeshStandardMaterial({ color: 'white',
-        metalness: 1.0,
-        roughness: 0.1
-      });
-
-      window.material = material;
-
-      var mesh = new THREE.Mesh( geometry, material );
-
-      window.mesh = mesh;
-
-      scene.add( mesh );
-
-    })
-    */ 
-
-    // Loading Mr. Bones
-    const gltfLoader = new GLTFLoader();
-
-    var mrbones;
-    var url = 'models/mrbones/scene.gltf';
-    gltfLoader.load(url, (gltf) => {
-        mrbones = gltf.scene.children[0];
-        mrbones.userData.URL = "https://www.stackoverflow.com";
-        scene.add(mrbones);
-    });
-    console.log(mrbones);
-
-    // interaction
-    controls = new OrbitControls( camera, renderer.domElement );
-  
-    // call animation/rendering loop
-    animate();
-};
-
-function animate() {
-  
-    requestAnimationFrame( animate );
-  
-    // and here..
+    // Move camera to see the whole box
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    const dist = maxDim * 2.5;
+    camera.position.copy(center.clone().add(new THREE.Vector3(dist, dist, dist)));
+    camera.lookAt(center);
+    controls.target.copy(center);
     controls.update();
-    renderer.render( scene, camera );
+  },
+  undefined,
+  (err) => {
+    console.error('Error loading fullbrain.glb:', err);
+  }
+);
 
-};
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Loop
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();

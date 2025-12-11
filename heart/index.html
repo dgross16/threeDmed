@@ -1,8 +1,43 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>3D Brain</title>
+    <style>
+      html, body {
+        background-color: #000;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden !important;
+      }
+      canvas { display: block; }
+    </style>
+
+    <!-- Needed so the browser understands the import map in all modern browsers -->
+    <script async src="https://unpkg.com/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+
+    <!-- Map bare specifiers "three" and "three/addons/..." to real URLs -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <!-- Your main module -->
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
+
+<!--<html>
   <head>
     <style>
       html, body {
-        background-color: #75BFEC;
+        background-color:#000;
         margin: 0;
         padding: 0;
         height: 100%;
@@ -14,14 +49,14 @@
     {
       "imports": {
         "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/",
-        "tweakpane": "./static/modules/tweakpane-4.0.5.min.js"
+        "three/addons/": "https://unpkg.com/three@latest/examples/jsm/"
       }
     }
     </script>
-    <script type="module" src="./src/script.js"></script>
+    <script type="module" src="./script.js"></script>
   </head>
   <body>
+
   </body>
 </html>
-
+-->
